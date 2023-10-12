@@ -1,5 +1,5 @@
 from flask import *
-
+import sqlite3
 app = Flask(__name__)  # creating the Flask class objec
 app.secret_key = "abc"
 @app.route('/')  # decorator drfines the
@@ -92,7 +92,87 @@ def getVariable():
 
 
 
+@app.route('/file_upload')
+def upload_form():
+    return render_template('file_upload_form.html')
 
+@app.route('/upload_success',methods=['POST'])
+def success():
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(f.filename)
+        return render_template("success.html", name=f.filename)
+
+
+# flash message  flash(message, category)
+# syntax
+# get_flashed_message(with_categories, category_filter)
+
+
+@app.route('/developer/<name>')
+def get_developer_name(name):
+    flash("I know You are developer"+name)
+    return  redirect('developer.html')
+
+@app.route('/employee_op')
+def  employee_operation():
+    return  render_template('crud.html')
+
+
+@app.route("/add")
+def add():
+    return render_template("add.html")
+
+
+
+
+
+@app.route("/savedetails",methods = ["POST","GET"])
+def saveDetails():
+    msg = "msg"
+    if request.method == "POST":
+        try:
+            name = request.form["name"]
+            email = request.form["email"]
+            address = request.form["address"]
+            print(name,email,address)
+            with sqlite3.connect("employee.db") as con:
+                cur = con.cursor()
+                cur.execute("INSERT into Employees (name, email, address) values (?,?,?)",(name,email,address))
+                con.commit()
+                msg = "Employee successfully Added"
+        except:
+            con.rollback()
+            msg = "We can not add the employee to the list"
+        finally:
+            return render_template("success.html",msg = msg)
+            con.close()
+
+
+@app.route("/deleterecord",methods = ["POST"])
+def deleterecord():
+    id = request.form["id"]
+    with sqlite3.connect("employee.db") as con:
+        try:
+            cur = con.cursor()
+            cur.execute("delete from Employees where id = ?",id)
+            msg = "record successfully deleted"
+        except:
+            msg = "can't be deleted"
+        finally:
+            return render_template("delete_record.html",msg = msg)
+
+
+@app.route('/view')
+def view():
+    print("I  am your view I am working")
+    con = sqlite3.connect("employee.db")
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+    cur.execute("select * from Employees")
+    rows = cur.fetchall()
+    print(rows)
+    return render_template("view.html",rows = rows)
 if __name__ == '__main__':
     app.run(debug=True)
 
