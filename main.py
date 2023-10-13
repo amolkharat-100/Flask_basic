@@ -173,6 +173,27 @@ def view():
     rows = cur.fetchall()
     print(rows)
     return render_template("view.html",rows = rows)
+
+
+
+
+# i am  testing some api
+
+
+@app.route('/test_api',methods=['GET','POST'])
+def test_api():
+    if (request.method == 'GET'):
+        data = "hello world"
+        return jsonify({'data': data})
+
+
+@app.route('/test_api2/<int:num>',methods=['GET'])
+def square(num):
+    if (request.method == 'GET'):
+        square_of_number=num * num
+        return jsonify({'square':square_of_number})
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
